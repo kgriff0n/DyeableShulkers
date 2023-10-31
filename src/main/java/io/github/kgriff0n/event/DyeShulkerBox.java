@@ -1,5 +1,7 @@
 package io.github.kgriff0n.event;
 
+import com.mojang.authlib.properties.Property;
+import io.github.kgriff0n.DyeableShulkers;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -9,6 +11,8 @@ import net.minecraft.block.entity.ShulkerBoxBlockEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.state.StateManager;
+import net.minecraft.state.property.Properties;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Hand;
@@ -45,7 +49,8 @@ public class DyeShulkerBox implements UseBlockCallback {
     @Override
     public ActionResult interact(PlayerEntity player, World world, Hand hand, BlockHitResult hitResult) {
         BlockPos pos = hitResult.getBlockPos();
-        Block block = world.getBlockState(pos).getBlock();
+        BlockState blockState = world.getBlockState(pos);
+        Block block = blockState.getBlock();
         ItemStack itemStack = player.getMainHandStack();
         Item item = itemStack.getItem();
         if (block instanceof ShulkerBoxBlock && hand == Hand.MAIN_HAND) {
@@ -54,7 +59,7 @@ public class DyeShulkerBox implements UseBlockCallback {
                 NbtCompound nbt = oldShulkerBox.createNbt();
                 DyeColor color = ((DyeItem) item).getColor();
 
-                world.setBlockState(pos, SHULKER_MAP.get(color.getId()));
+                world.setBlockState(pos, SHULKER_MAP.get(color.getId()).with(Properties.FACING, blockState.get(Properties.FACING)));
                 ShulkerBoxBlockEntity newShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
                 newShulkerBox.readNbt(nbt);
 
@@ -72,7 +77,7 @@ public class DyeShulkerBox implements UseBlockCallback {
                     player.getInventory().setStack(player.getInventory().selectedSlot, Items.BUCKET.getDefaultStack());
                 }
 
-                world.setBlockState(pos, SHULKER_MAP.get(16));
+                world.setBlockState(pos, SHULKER_MAP.get(16).with(Properties.FACING, blockState.get(Properties.FACING)));
                 ShulkerBoxBlockEntity newShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
                 newShulkerBox.readNbt(nbt);
 
