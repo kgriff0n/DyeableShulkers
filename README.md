@@ -20,3 +20,7 @@ You can dye shulker boxes directly on ground without breaking them...
 You can also dye shulkers.
 
 ![Dye Shulkers](img/dye-shulkers.gif)
+
+---
+
+Since **version 1.1.0**, you can enable and disable some functionalities with the `/dyeable-shulkers` command or by editing the `dyeable-shulkers.properties` file in the `config` folder.

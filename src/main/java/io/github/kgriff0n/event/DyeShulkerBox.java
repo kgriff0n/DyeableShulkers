@@ -1,18 +1,18 @@
 package io.github.kgriff0n.event;
 
-import com.mojang.authlib.properties.Property;
-import io.github.kgriff0n.DyeableShulkers;
+import io.github.kgriff0n.Config;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.ShulkerBoxBlock;
 import net.minecraft.block.entity.ShulkerBoxBlockEntity;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
+import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.DyeColor;
 import net.minecraft.util.Hand;
@@ -54,14 +54,14 @@ public class DyeShulkerBox implements UseBlockCallback {
         ItemStack itemStack = player.getMainHandStack();
         Item item = itemStack.getItem();
         if (block instanceof ShulkerBoxBlock && hand == Hand.MAIN_HAND) {
-            if (item instanceof DyeItem && SHULKER_MAP.get(((DyeItem) item).getColor().getId()) != block.getDefaultState()) {
+            if (Config.canDyeBlock && item instanceof DyeItem && SHULKER_MAP.get(((DyeItem) item).getColor().getId()) != block.getDefaultState()) {
                 ShulkerBoxBlockEntity oldShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
-                NbtCompound nbt = oldShulkerBox.createNbt();
+                NbtCompound nbt = oldShulkerBox.createNbt(world.getRegistryManager());
                 DyeColor color = ((DyeItem) item).getColor();
 
                 world.setBlockState(pos, SHULKER_MAP.get(color.getId()).with(Properties.FACING, blockState.get(Properties.FACING)));
                 ShulkerBoxBlockEntity newShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
-                newShulkerBox.readNbt(nbt);
+                newShulkerBox.read(nbt, world.getRegistryManager());
 
                 if (!player.isCreative()) {
                     player.getMainHandStack().decrement(1);
@@ -69,9 +69,9 @@ public class DyeShulkerBox implements UseBlockCallback {
 
                 return ActionResult.success(world.isClient);
 
-            } else if (item == Items.WATER_BUCKET && block.getDefaultState() != Blocks.SHULKER_BOX.getDefaultState()) {
+            } else if (Config.canDyeBlock && item == Items.WATER_BUCKET && block.getDefaultState() != Blocks.SHULKER_BOX.getDefaultState()) {
                 ShulkerBoxBlockEntity oldShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
-                NbtCompound nbt = oldShulkerBox.createNbt();
+                NbtCompound nbt = oldShulkerBox.createNbt(world.getRegistryManager());
 
                 if (!player.isCreative()) {
                     player.getInventory().setStack(player.getInventory().selectedSlot, Items.BUCKET.getDefaultStack());
@@ -79,13 +79,18 @@ public class DyeShulkerBox implements UseBlockCallback {
 
                 world.setBlockState(pos, SHULKER_MAP.get(16).with(Properties.FACING, blockState.get(Properties.FACING)));
                 ShulkerBoxBlockEntity newShulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
-                newShulkerBox.readNbt(nbt);
+                newShulkerBox.read(nbt, world.getRegistryManager());
 
                 return ActionResult.success(world.isClient);
-            } else if (item == Items.NAME_TAG) {
-                if (itemStack.hasCustomName()) {
+            } else if (Config.canRenameBlock && item == Items.NAME_TAG) {
+                if (itemStack.getComponents().contains(DataComponentTypes.CUSTOM_NAME)) {
                     ShulkerBoxBlockEntity shulkerBox = (ShulkerBoxBlockEntity) world.getBlockEntity(pos);
-                    shulkerBox.setCustomName(itemStack.getName());
+//                    shulkerBox.setCustomName(itemStack.getName());
+//                    shulkerBox.setComponents(shulkerBox.getComponents());
+                    NbtCompound nbt = shulkerBox.createNbt(world.getRegistryManager());
+                    nbt.putString("CustomName", Text.Serialization.toJsonString(itemStack.getComponents().get(DataComponentTypes.CUSTOM_NAME), world.getRegistryManager()));
+                    shulkerBox.read(nbt, world.getRegistryManager());
+                    shulkerBox.markDirty();
                     if (!player.isCreative()) {
                         player.getMainHandStack().decrement(1);
                     }

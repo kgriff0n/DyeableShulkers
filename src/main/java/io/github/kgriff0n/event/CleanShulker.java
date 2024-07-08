@@ -1,5 +1,6 @@
 package io.github.kgriff0n.event;
 
+import io.github.kgriff0n.Config;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.ShulkerEntity;
@@ -17,7 +18,7 @@ public class CleanShulker implements UseEntityCallback {
     @Override
     public ActionResult interact(PlayerEntity player, World world, Hand hand, Entity entity, @Nullable EntityHitResult hitResult) {
         ShulkerEntity shulkerEntity;
-        if (entity instanceof ShulkerEntity && (shulkerEntity = (ShulkerEntity) entity).isAlive() && shulkerEntity.getColor() != null && hand == Hand.MAIN_HAND && player.getMainHandStack().getItem() == Items.WATER_BUCKET) {
+        if (Config.canDyeMob && entity instanceof ShulkerEntity && (shulkerEntity = (ShulkerEntity) entity).isAlive() && shulkerEntity.getColor() != null && hand == Hand.MAIN_HAND && player.getMainHandStack().getItem() == Items.WATER_BUCKET) {
             if (!player.isCreative()) {
                 player.getMainHandStack().decrement(1);
                 player.getInventory().setStack(player.getInventory().selectedSlot, Items.BUCKET.getDefaultStack());

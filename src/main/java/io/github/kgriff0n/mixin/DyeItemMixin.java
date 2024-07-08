@@ -1,5 +1,6 @@
 package io.github.kgriff0n.mixin;
 
+import io.github.kgriff0n.Config;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,8 +27,8 @@ public class DyeItemMixin {
 	@Inject(at = @At("HEAD"), method = "useOnEntity", cancellable = true)
 	private void useOnShulker(ItemStack stack, PlayerEntity user, LivingEntity entity, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
 		ShulkerEntity shulkerEntity;
-		if (entity instanceof ShulkerEntity && (shulkerEntity = (ShulkerEntity) entity).isAlive() && ((ShulkerEntity) entity).getColor() != this.color) {
-			user.playSound(SoundEvents.ITEM_DYE_USE, SoundCategory.PLAYERS, 1.0f, 1.0f);
+		if (Config.canDyeMob && entity instanceof ShulkerEntity && (shulkerEntity = (ShulkerEntity) entity).isAlive() && ((ShulkerEntity) entity).getColor() != this.color) {
+			user.playSound(SoundEvents.ITEM_DYE_USE);
 			if (!user.getWorld().isClient) {
 				setColor(shulkerEntity, this.color.getId());
 				stack.decrement(1);
